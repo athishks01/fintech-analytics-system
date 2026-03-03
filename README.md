@@ -1,1 +1,1 @@
-End-to-end fintech transaction and credit risk analytics system using Python and Mysql.
+End-to-end fintech transaction and credit risk analytics system using Python and Mysql.git
