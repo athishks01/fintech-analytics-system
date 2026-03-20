@@ -10,7 +10,7 @@ fake.unique.clear()
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="Athish@1969",
+    password="Your_password",
     database="fintech_analytics"
 )
 
