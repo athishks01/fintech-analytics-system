@@ -2,17 +2,15 @@ import random
 from faker import Faker
 import mysql.connector
 from datetime import datetime
-import os
 
 fake = Faker()
 fake.unique.clear()
-
 
 # MySQL CONNECTION
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password=os.getenv("DB_PASSWORD"),         
+    password="Athish@1969",
     database="fintech_analytics"
 )
 
@@ -20,7 +18,6 @@ cursor = conn.cursor()
 
 
 # GENERATE USERS
-
 def generate_users(n=5000):
     users = []
 
@@ -42,8 +39,8 @@ def generate_users(n=5000):
     conn.commit()
     print(f"{n} users inserted.")
 
-# GENERATE MERCHANTS
 
+# GENERATE MERCHANTS
 def generate_merchants(n=500):
     categories = ['Food', 'E-commerce', 'Travel', 'Bills', 'Entertainment']
     merchants = []
@@ -65,15 +62,15 @@ def generate_merchants(n=500):
     conn.commit()
     print(f"{n} merchants inserted.")
 
-# GENERATE WALLETS
 
+# GENERATE WALLETS
 def generate_wallets(n=5000):
     wallets = []
 
     for wallet_id in range(1, n + 1):
         wallets.append((
             wallet_id,
-            wallet_id,  # 1 wallet per user
+            wallet_id,
             round(random.uniform(0, 20000), 2),
             fake.date_time_between(start_date='-1y', end_date='now')
         ))
@@ -89,14 +86,18 @@ def generate_wallets(n=5000):
 
 
 # FETCH USER SIGNUP DATES
-
 def fetch_user_signup_dates():
     cursor.execute("SELECT user_id, created_at FROM users")
     return dict(cursor.fetchall())
 
 
-# GENERATE TRANSACTIONS
+# FETCH LOAN -> USER MAP
+def fetch_loan_user_map():
+    cursor.execute("SELECT loan_id, user_id FROM loans")
+    return dict(cursor.fetchall())
 
+
+# GENERATE TRANSACTIONS
 def generate_transactions(user_signup_dates, n=70000):
     transaction_types = [
         'wallet_topup',
@@ -109,7 +110,6 @@ def generate_transactions(user_signup_dates, n=70000):
     transactions = []
 
     for txn_id in range(1, n + 1):
-
         txn_type = random.choice(transaction_types)
         user_id = random.randint(1, 5000)
 
@@ -118,7 +118,6 @@ def generate_transactions(user_signup_dates, n=70000):
             merchant_id = random.randint(1, 500)
 
         amount = round(random.uniform(50, 5000), 2)
-
         signup_date = user_signup_dates[user_id]
 
         txn_date = fake.date_time_between(
@@ -148,7 +147,6 @@ def generate_transactions(user_signup_dates, n=70000):
 
 
 # GENERATE LOANS
-
 def generate_loans(user_signup_dates, n=5000):
     loans = []
 
@@ -181,17 +179,16 @@ def generate_loans(user_signup_dates, n=5000):
     conn.commit()
     print(f"{n} loans inserted.")
 
-# GENERATE REPAYMENTS
 
-def generate_repayments(n=15000):
+# GENERATE REPAYMENTS
+def generate_repayments(loan_user_map, n=15000):
     repayments = []
 
     for repayment_id in range(1, n + 1):
         loan_id = random.randint(1, 5000)
-        user_id = random.randint(1, 5000)
+        user_id = loan_user_map[loan_id]
 
         due_date = fake.date_between(start_date='-6M', end_date='+3M')
-
         status = random.choice(['PAID', 'OVERDUE', 'MISSED'])
         paid_at = None
 
@@ -220,7 +217,6 @@ def generate_repayments(n=15000):
 
 
 # MAIN EXECUTION
-
 generate_users()
 generate_merchants()
 generate_wallets()
@@ -229,9 +225,11 @@ user_signup_dates = fetch_user_signup_dates()
 
 generate_transactions(user_signup_dates)
 generate_loans(user_signup_dates)
-generate_repayments()
+
+loan_user_map = fetch_loan_user_map()
+generate_repayments(loan_user_map)
 
 cursor.close()
 conn.close()
 
-print("Data generation complete 🚀")
+print("Data generation complete ")

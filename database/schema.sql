@@ -18,7 +18,7 @@ CREATE TABLE merchants (
 
 CREATE TABLE wallets (
     wallet_id INT PRIMARY KEY,
-    user_id INT,
+    user_id INT UNIQUE,
     balance DECIMAL(15,2),
     created_at DATETIME,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
